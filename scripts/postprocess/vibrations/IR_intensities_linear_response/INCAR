@@ -1,0 +1,73 @@
+SYSTEM = Ce2O3_hcp_paw_pbe_4fvale_2x400_FM_Ueff_4_30eV_V0_stress 
+
+Start parameter for this run:
+ISTART  = 1         ! start job from scratch (see INIWAV)
+#INIWAV  = 1         ! Fill wavefunctions arrays with random numbers
+#ICHARGE = 1         ! Calculat charge density from initial wave function
+
+Electronic relaxation:
+ENCUT   = 800    ! Cutoff energy for plane waves basis set in eV  
+#ALGO    = FAST      ! Diagonalization - Preconditioned residuum-minimization
+#IALGO = 38
+ALGO = ALL
+NELMIN  = 8         ! Minimum number of eletronic selfconsistency (SC) steps
+NELM    = 500       ! Maximum number of electronic SC steps
+NELMDL  = -15       ! Number of NON-selfconsistency steps 
+EDIFF   = 0.1E-7    ! Global-break condition for the electronic SC-loop (ELM) 
+#NBANDS  = 42 
+#IMIX    = 1
+LSUBROT = .FALSE.
+AMIX     = 0.050    ! linear mixing parameter
+BMIX     = 0.00001   ! cutoff wave vector for Kerker mixing scheme
+AMIX_MAG = 0.20
+BMIX_MAG = 0.00001
+
+Calculation mode:
+PREC    = Accurate  ! Calcululation level (Changes FFT-grids) 
+ISPIN   = 2         ! spin-polarized calculations 1:No  2:Si 
+MAGMOM  = 200*0
+#NUPDOWN = 6 
+LMAXMIX = 4         ! PAW flag  
+ADDGRID = .TRUE.    ! PAW flag
+LASPH   = .TRUE.
+#ISYM = 0
+
+LREAL = Auto
+
+PBE+U calculation:
+LDAU      = .TRUE.
+LDAUTYPE  = 2
+LDAUL     = 2    -1    -1    -1   -1
+LDAUU     = 8.00  0.00  0.00  0.00  0.00
+LDAUJ     = 0.90  0.00  0.00  0.00  0.00
+
+Integration over the Brillouin zone (BZ):
+#ISMEAR  = -5        ! Gaussian smearing
+ISMEAR = 0
+SIGMA = 0.05
+
+DOS calculation:
+LORBIT  = 11        ! Calculate the DOS without providing the Wigner Seitz radius
+NEDOS   = 3001      ! Number of points to calculate the DOS
+
+
+Ionic relaxation
+EDIFFG  = -0.001 
+IBRION  = 7           ! Quasi Newton, faster-efficient close local minima
+ISIF = 0
+LEPSILON = .TRUE.  
+NWRITE = 3
+
+#IVDW=11
+
+NWRITE  = 2         ! Determines how much information will be written in OUTCAR
+LCHARG  = .TRUE.
+LWAVE = .FALSE.
+
+NSW     = 1
+POTIM   = 0.005
+
+Key for parallel mode calculation:
+#NPAR = 24
+LPLANE  = .TRUE.
+EOF

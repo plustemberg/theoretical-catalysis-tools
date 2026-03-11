@@ -1,0 +1,6 @@
+CeO2-111-2x2cell-15L         ! Comment
+0                            ! Automatic Generation scheme
+Gamma                        ! Generate a Gamma-Point Centered Grid 
+2 4 1                      ! Subdivisions N_1, N_2, and N_3 (K-mesh) 
+0.0 0.0 0.0                  ! optional shift of the mesh
+EOF 
