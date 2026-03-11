@@ -1,0 +1,33 @@
+ISTART  = 1
+
+ALGO = All
+NELMDL  = -15
+EDIFF = 1E-8
+ENCUT = 600
+ISYM = 0
+
+Ionic relaxation
+EDIFFG  = -0.01 
+IBRION  = 5           ! Quasi Newton, faster-efficient close local minima
+ISIF = 2
+NFREE = 2
+NELMIN  = 8           ! Use together with IBRION = 1
+NSW     = 1
+POTIM   = 0.015
+ISPIN = 2
+MAGMOM = 52*0.6 16*0
+
+
+LORBIT = 11
+NEDOS   = 10001
+
+
+PREC = Accurate
+ISMEAR = 0
+SIGMA = 0.05
+LREAL= Auto
+
+VASP OUTPUTs
+NWRITE  = 2         
+LCHARG = .TRUE.
+LWAVE = .TRUE.
