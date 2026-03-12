@@ -2,31 +2,20 @@
 
 Tools for post-processing vibrational calculations from VASP.
 
-## Contents
+This directory contains workflows for:
 
-1. Visualization of normal modes with Jmol
-2. IR intensity estimation from DFPT Born effective charges (BEC)
-3. IR intensity estimation from finite differences of the dipole moment
+- visualization of vibrational normal modes
+- IR intensities from DFPT / linear response
+- IR intensities from finite differences of the dipole moment
+- generation of broadened spectra from discrete vibrational intensities
 
-## Requirements
+## Directory structure
 
-- VASP vibrational output files
-- Bash
-- Python (optional, future implementation)
-- Jmol installed locally
-
-## 1. Visualizing vibrational modes with Jmol
-
-Description of required input files and how to launch the visualization.
-
-## 2. IR intensities from DFPT and BEC tensors
-
-Short explanation of the workflow, expected VASP tags, and post-processing steps.
-
-## 3. IR intensities from finite differences
-
-Short explanation of the workflow, directory structure for displacements, and post-processing.
-
-## Examples
-
-Example files are provided under `examples/`.
+```text
+vibrations/
+├── visualization_bash_code/
+├── visualization_py_code/
+├── JMOL_tutorial/
+├── IR_intensities_linear_response/
+├── IR_intensities_finite_differences/
+└── Intensity_Spectrum/
