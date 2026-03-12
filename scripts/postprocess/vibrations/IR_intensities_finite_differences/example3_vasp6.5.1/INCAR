@@ -1,0 +1,65 @@
+ISTART = 1 ! Start from scratch, do not read WAVECAR file
+
+ALGO = normal
+AMIX    = 0.025000
+BMIX    = 0.000010
+AMIX_MAG = 0.10
+BMIX_MAG = 0.00001
+EDIFF   = 1E-8      ! Global-break condition for the electronic SC-loop (ELM)
+EDIFFG  = -0.001     ! the relaxation is stopped when the norms of all the forces are smaller than |EDIFFG|
+ENCUT = 500
+NBANDS=192
+IBRION = 5
+NFREE = 2
+ISIF = 2
+ISYM = 0
+IVDW = 11
+POTIM = 0.015
+ICHARG = 1
+
+
+LMAXMIX = 4         ! PAW flag
+ADDGRID = .TRUE.    ! PAW flag
+LASPH   = .TRUE.    ! PAW flag
+
+#PBE+U calculation:
+LDAU = True
+LDAUL = -1 -1 -1 -1 -1 
+LDAUU = 0.0 0.0 0.0 0.0 0.0  
+LDAUJ = 0.0 0.0 0.0 0.0 0.0 
+LDAUPRINT = 2
+LDAUTYPE = 2
+
+#DOS calculation:
+LORBIT  = 11        ! Calculate the DOS without providing the Wigner Seitz radius
+NEDOS   = 10001      ! Number of points to calculate the DOS
+
+LREAL = Auto  ! determines whether the projection operators are evaluated in real-space or in reciprocal space.
+                 ! false = projection done in reciprocal space
+ISPIN = 1
+#NUPDOWN = 60
+#MAGMOM = 4 5 5 5 5 4 5 4 4 14*5 4 2*5 13*-5 56*0 0 0 0 0 
+
+#Ionic relaxation:
+NELMIN  = 8         ! Minimum number of eletronic selfconsistency (SC) steps
+NELM    = 500       ! Maximum number of electronic SC steps
+NELMDL  = -15       ! Number of NON-selfconsistency steps
+NSW = 1
+PREC = Accurate  ! Calculation level (Changes FFT-grids)
+
+LDIPOL = .TRUE.
+IDIPOL = 4
+
+#Integration over the Brillouin zone (BZ):
+
+ISMEAR  = 0         ! Gaussian smearing
+SIGMA   = 0.05
+
+#VASP OUTPUTs
+NWRITE  = 2         ! Determines how much information will be written in OUTCAR
+LCHARG = .TRUE.
+LWAVE = .FALSE.
+
+NPAR = 16
+
+

@@ -1,0 +1,191 @@
+#!/usr/bin/env bash
+#-----------------------------------------------------------------------
+# awk script for calculating dynamic dipole-moments
+# after a phonon calculation using IBRION=5; IDIPOL=3; LDIPOL=.TRUE.
+#-----------------------------------------------------------------------
+outfile='dyndip.data'
+
+# get NFREE from OUTCAR
+nfree=`grep "NFREE  =" OUTCAR | awk '{print $3}'`
+echo "nfree" $nfree > $outfile
+
+# get POTIM from OUTCAR
+potim=`grep "POTIM  =" OUTCAR | awk '{print $3}'`
+echo "potim" $potim >> $outfile
+
+#get NIONS from POSCAR
+#nions=`head -6 POSCAR | tail -1| awk  '{print $1+$2+$3+$4}'`
+nions=`grep "NIONS" OUTCAR | awk '{print $12}'`
+echo "nions" $nions >> $outfile
+
+# get dipole from OUTCAR
+numdip=`grep "   Degr" OUTCAR | awk '{print $6}'`
+let numdip=$numdip*$nfree+1
+echo "dipols " $numdip  >> $outfile
+grep -E 'EDIFF is reached|electrons x Angst' OUTCAR >> dipolread.dat
+grep 'EDIFF is reached' -B1 dipolread.dat | awk '/electrons x Angst/ {print $4}' >> $outfile
+rm dipolread.dat
+
+# get frequencies from OUTCAR
+echo "freqs"  >> $outfile
+nfreq=`grep THz OUTCAR | wc -l`
+let nfreq=nfreq/2
+#grep "THz" OUTCAR | tail -$nfreq | awk '{print $8}' >> $outfile
+grep "THz" OUTCAR  | awk '{print $8}' >> $outfile
+
+# get selective dyn from POSCAR
+echo "select" >> $outfile
+line=`head -8 POSCAR | tail -1`
+if [[ ($line > "r" && $line < "t") || ($line > "R" && $line < "T") ]] ; then
+         #positions in 9-8+nions
+         let posend=$nions+9
+         head -$posend POSCAR | tail -$nions | awk '{print $4,$5,$6}' >> $outfile
+else
+i=0
+while [[ $i -lt $nions ]] ; do
+        echo " T  T  T " >> $outfile
+        let i=$i+1
+done
+fi
+
+# get Eigenvectors from OUTCAR
+echo "evect" >> $outfile
+#awk '
+#/NIONS/ {nions=$12;ifreq=0}
+#/Degrees of freedom/ {nfreq=$6}
+#(start==1) && (ifreq > nfreq) && (2*nfreq >= ifreq) && (nions >= ion) {ion++;printf "%14.6f %14.6f %14.6f\n", $4,$5,$6}
+#/X         Y         Z/ {start=1;ion=1;ifreq++}
+#' < OUTCAR >> $outfile
+
+
+#------------------------------------------------
+# Este programa sirve para generar una animación
+# que pueda ser reproducida por el Jmol
+#------------------------------------------------
+
+#------------------------------------------------
+# Cuento el número de modos normales
+#------------------------------------------------
+grep 'THz' OUTCAR > frequencies-values
+wc -l frequencies-values > nfre.dat
+nfre=` awk ' NR==1,NR==1 {print($1)}' nfre.dat`
+echo Nfs = $nfre
+
+rm nfre.dat
+
+#------------------------------------------------
+
+
+#------------------------------------------------
+# MODOS DE VIBRACIÓN
+#------------------------------------------------
+nCe=` awk ' NR==7,NR==7 {print($1)}' CONTCAR`
+nO=` awk ' NR==7,NR==7 {print($2)}' CONTCAR`
+
+
+N_atomos=`bc <<!
+$nCe + $nO 
+!`
+
+echo Nº de Átomos = $N_atomos
+
+naa=`bc <<!
+$N_atomos+1
+!`
+
+
+grep -A$naa 'THz' OUTCAR > modes_0
+sed '/ THz /{N;d;}' modes_0 > modes_1
+
+rm modes_0
+
+for (( i = 1 ; i <= $nfre ; i++ ))
+do
+
+echo Iteration Nº = $i / $nfre
+
+nn=`bc <<!
+($i-1)*($N_atomos + 1.) + $N_atomos
+!`
+
+
+head -n $nn modes_1 > pru-$i
+tail -n $N_atomos pru-$i >> modes-$i
+
+
+awk ' NR==('1'),NR==('$nO+$nCe') {print $4,$5,$6}' modes-$i >> ver-$i
+
+cat ver-$i >> $outfile
+
+
+done
+
+
+rm modes*
+rm pru* ver*
+
+#--------------------------------------------------
+# fire up awk
+#--------------------------------------------------
+awk '
+/nfree/   {  nfree=$2 }
+/potim/   {  potim=$2 }
+/nions/   {  nions=$2 }
+
+e==1 && !/freqs/     {
+        dipol[i ] = $1
+        if ( i > ndip ) print "dipol: something is wrong", i ,ndip
+        i++ }
+
+e==2 && !/select/     {
+        freq[i ] = $1
+        i++ }
+
+e==3 && !/evect/     {
+        select[i ] = $1
+        select[i+1 ] = $2
+        select[i+2 ] = $3
+        i=i+3 }
+
+e==4 && !/next set/     {
+        evect[i ] = $1
+        evect[i+1 ] = $2
+        evect[i+2 ] = $3
+        i=i+3 }
+
+/dipols/    { e=1 ; i=1; ndip=$2 }
+/freqs/     { e=2 ; i=1}
+/select/    { e=3 ; i=1}
+/evect/     { e=4 ; i=1}
+
+END      {
+# build up dipole-array
+if (nfree == 2) idip=1
+if (nfree == 4) idip=0
+if (nfree != 2 && nfree != 4) {print "only nfree=2,4 supported!!";exit}
+
+for ( i=1; i<=3*nions; i++) {
+dipvec[i]=0
+if (select[i] == "t" || select[i] == "T") {
+idip=idip+nfree; dipvec[i]=(dipol[idip]-dipol[idip-1])/(2*potim)
+}
+}
+
+print "   #        freq(cm)   freq(THz) freq(meV)       dyndip        dyndip^2"
+for (i = 1;i<=(ndip-1)/nfree;i++) {
+dipmom=0
+
+norm[i] = 0
+for (k = 1;k<=3*nions;k++)
+norm[i] = norm[i] + evect[(i-1)*3*nions+k]^2
+
+norm[i] = sqrt(norm[i])
+
+for (j = 1;j<=3*nions;j++)
+dipmom=dipmom+dipvec[j]*evect[(i-1)*3*nions+j]/norm[i]
+printf "%4d %14.2f %10.3f %10.3f %14.6f %14.12f\n",i,freq[i],freq[i]*.0299792,freq[i]*.123986,dipmom,dipmom*dipmom
+}
+}
+'  <  $outfile
+
+#-----------------------------------------------------------------------

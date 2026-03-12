@@ -1,0 +1,61 @@
+SYSTEM = Ceria_clean 
+
+Start parameter for this run:
+ISTART  = 1         ! start job from scratch (see INIWAV)
+INIWAV  = 1         ! Fill wavefunctions arrays with random numbers
+ICHARGE = 1         ! Calculate charge density from initial wave function
+
+Electronic relaxation:
+ENCUT   = 500.0     ! Cutoff energy for plane waves basis set in eV  
+ALGO = ALL
+LSUBROT = .FALSE.
+NELMIN  = 8         ! Minimum number of eletronic selfconsistency (SC) steps
+NELM    = 2000       ! Maximum number of electronic SC steps
+NELMDL  = -15       ! Number of NON-SCF steps (SHOULD be NEGATIVE)
+EDIFF   = 1E-8      ! Global-break condition for the electronic SC-loop (ELM)
+##NBANDS  = ##
+
+Calculation mode:
+PREC    = Accurate  ! Calculation level (Changes FFT-grids)
+ISPIN   = 1         ! spin-polarized calculations
+LMAXMIX = 6         ! PAW flag
+ADDGRID = .TRUE.    ! PAW flag
+LASPH   = .TRUE.    ! PAW flag
+ISYM    = 0
+LREAL=Auto
+
+
+#Hybrid Functional calculations:
+LHFCALC = .TRUE.    ! A hybrid XC potential should be used
+TIME    = 0.40      ! Trial time step for IALGO=5X
+HFLMAX  = 6         ! It might be required to increase, if the system contains f-electrons.
+HFSCREEN= 0.207     ! Switch from the PBE0 to HSE03
+
+Integration over the Brillouin zone (BZ):
+ISMEAR  = 0         ! Gaussian smearing
+SIGMA   = 0.05      
+
+Ionic relaxation:
+NSW     = 1       ! Number of ionic steps
+EDIFFG  = -0.001     ! stop if all forces are smaller than |EDIFFG|
+IBRION  = 5         
+ISIF    = 0         ! Calculate FORCE and Relax Ions 
+POTIM   = 0.015
+ISIF = 2
+NFREE = 2
+IDIPOL = 3
+LDIPOL =.TRUE.
+
+DOS calculation:
+LORBIT  = 11        ! Calculate the DOS without providing the Wigner Seitz radius
+NEDOS   = 1001      ! Number of points to calculate the DOS
+
+VASP OUTPUTs
+NWRITE  = 2         ! Determines how much information will be written in OUTCAR
+LCHARG = .FALSE.
+LWAVE = .TRUE.
+
+Key for parallel mode calculation:
+KPAR = 1
+NPAR = 448
+EOF
