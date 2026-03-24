@@ -20,6 +20,8 @@ Small command-line toolkit to process `DOSCAR` files from VASP with an emphasis 
   Groups slab atoms into layers according to the z coordinate from `CONTCAR`.
 - `dos_plot.py`  
   Quick PNG plotter for total DOS or selected PDOS.
+- `compare_dos.py`
+  Automatic comparison of DOS/PDOS from two calculations.
 
 ## Requirements
 
@@ -145,5 +147,37 @@ For spin-polarized DOS, the tools are written to handle channels such as:
 
 and also the individual m-resolved channels with `_up` / `_down` suffixes when present.
 
+## compare_dos.py
+
+Automatic comparison of DOS/PDOS from two calculations.
+
+Useful cases:
+- clean surface vs adsorbate-covered surface
+- stoichiometric vs reduced model
+- PBE vs r2SCAN
+- ferromagnetic vs non-magnetic solution
+- two different local environments for the same atom set
+
+Examples:
+
+```bash
+python3 compare_dos.py \
+  --doscar-a DOSCAR.clean --outcar-a OUTCAR.clean --contcar-a CONTCAR.clean \
+  --doscar-b DOSCAR.ads   --outcar-b OUTCAR.ads   --contcar-b CONTCAR.ads \
+  --emin -8 --emax 3 --output-prefix clean_vs_ads
+```
+
+```bash
+python3 compare_dos.py \
+  --doscar-a DOSCAR.A --outcar-a OUTCAR.A --contcar-a CONTCAR.A \
+  --doscar-b DOSCAR.B --outcar-b OUTCAR.B --contcar-b CONTCAR.B \
+  --atoms Ni --orbitals d --emin -8 --emax 2 --normalize max \
+  --output-prefix Ni_d_compare
+```
+
+Outputs:
+- `PREFIX.png`: overlay plot of A and B
+- `PREFIX_metrics.txt`: integrated weights, band centers, band-center shift, and shape-difference metrics
+- `PREFIX_LABEL.dat`: common-grid data file for each compared label
 
 
