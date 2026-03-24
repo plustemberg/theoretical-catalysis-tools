@@ -1,4 +1,4 @@
-# `extraer_info_jobs1.sh`
+# `extract_info_jobs.sh`
 
 ## Purpose
 
