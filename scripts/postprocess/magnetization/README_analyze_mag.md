@@ -181,14 +181,6 @@ The script reports, depending on the selected options:
 - The analysis is based on projected local moments and depends on the PAW partitioning.
 - A target value must be chosen by the user according to the chemical system and the type of orbital of interest.
 
-## Suggested use in repositories
-
-A reasonable location in a GitHub repository would be:
-
-```text
-scripts/postprocess/magnetization/analyze_magnetization.py
-scripts/postprocess/magnetization/README.md
-```
 
 ## Author note
 
