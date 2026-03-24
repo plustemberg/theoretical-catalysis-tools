@@ -23,7 +23,7 @@ Small command-line toolkit to process `DOSCAR` files from VASP with an emphasis 
 
 ## Requirements
 
-python3 3.
+python3
 
 For plotting:
 
