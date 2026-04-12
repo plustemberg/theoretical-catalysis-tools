@@ -1,89 +1,89 @@
 # README — `contcar_mark_ce3_recursive.py`
 
-## Qué hace este script
+## What this script does
 
-`contcar_mark_ce3_recursive.py` busca **recursivamente** carpetas que contengan al mismo tiempo un `CONTCAR` y un `OUTCAR`. En cada carpeta encontrada:
+`contcar_mark_ce3_recursive.py` searches **recursively** for folders that contain both a `CONTCAR` and an `OUTCAR`. In each matching folder, it:
 
-1. lee la **última** sección `magnetization (x)` del `OUTCAR`,
-2. toma la columna **`f`**,
-3. identifica los átomos cuyo valor cumple `|f| > umbral`,
-4. restringe esa selección al **bloque inicial de Ce** del `CONTCAR`,
-5. y reescribe las líneas de **especies** y **número de átomos** para que los `Ce3+` queden etiquetados como `La`.
+1. reads the **last** `magnetization (x)` section from the `OUTCAR`,
+2. takes the **`f`** column,
+3. identifies the atoms whose value satisfies `|f| > threshold`,
+4. restricts that selection to the **initial Ce block** in the `CONTCAR`,
+5. and rewrites the **species** and **atom-count** lines so that the detected `Ce3+` atoms are labeled as `La`.
 
-El objetivo es generar un `CONTCAR` donde los `Ce3+` queden **explícitos visualmente** sin modificar las coordenadas atómicas.
+The goal is to generate a `CONTCAR` where the `Ce3+` atoms are made **explicit visually** without changing the atomic coordinates.
 
 ---
 
-## Idea general del procedimiento
+## General idea of the procedure
 
-El script asume el orden estándar de VASP en el `CONTCAR`:
+The script assumes the standard VASP ordering in the `CONTCAR`:
 
-- la línea 6 contiene las especies,
-- la línea 7 contiene el número de átomos de cada especie,
-- y las coordenadas están agrupadas por especie en el mismo orden.
+- line 6 contains the species names,
+- line 7 contains the number of atoms of each species,
+- and the coordinates are grouped by species in the same order.
 
-Por ejemplo, si el `CONTCAR` tiene:
+For example, if the `CONTCAR` contains:
 
 ```text
 Ce O Ni
 32 64 6
 ```
 
-y en la última `magnetization (x)` del `OUTCAR` los índices con `|f| > 0.8` son:
+and the indices with `|f| > 0.8` in the last `magnetization (x)` block of the `OUTCAR` are:
 
 ```text
 3 10 16
 ```
 
-entonces el script transforma:
+then the script transforms:
 
 ```text
 Ce O Ni
 32 64 6
 ```
 
-en:
+into:
 
 ```text
 Ce La Ce La Ce La Ce O Ni
 2 1 6 1 5 1 16 64 6
 ```
 
-Es decir, cada `Ce3+` se separa como un bloque individual `La` dentro del bloque original de Ce.
+That is, each detected `Ce3+` atom is split out as an individual `La` block within the original Ce block.
 
 ---
 
-## Qué modifica y qué no modifica
+## What it modifies and what it does not modify
 
-### Modifica
+### Modified
 
-Solo las siguientes líneas del `CONTCAR`:
+Only the following lines of the `CONTCAR` are changed:
 
-- **línea 6**: especies químicas
-- **línea 7**: número de átomos por especie
+- **line 6**: chemical species
+- **line 7**: number of atoms per species
 
-### No modifica
+### Not modified
 
-- coordenadas atómicas
-- factor de escala
-- vectores de red
-- modo `Selective dynamics`
-- posiciones atómicas
-- el `OUTCAR`
+- atomic coordinates
+- scaling factor
+- lattice vectors
+- `Selective dynamics` mode
+- atomic positions
+- the `OUTCAR`
 
 ---
 
-## Suposiciones importantes
+## Important assumptions
 
-El script actual funciona correctamente si se cumplen estas condiciones:
+The current version works correctly if the following conditions are satisfied:
 
-1. La **primera especie** del `CONTCAR` es `Ce`.
-2. El número de átomos de Ce está en el **primer valor** de la línea de conteos.
-3. Los átomos están ordenados por bloques de especie como en un `CONTCAR/POSCAR` estándar de VASP.
-4. La sección `magnetization (x)` existe en el `OUTCAR`.
-5. La columna final de esa tabla corresponde al valor **`f`**.
+1. The **first species** in the `CONTCAR` is `Ce`.
+2. The number of Ce atoms is the **first value** on the atom-count line.
+3. Atoms are ordered by species blocks, as in a standard VASP `CONTCAR/POSCAR`.
+4. The `magnetization (x)` section exists in the `OUTCAR`.
+5. The last column of that table corresponds to the **`f`** value.
 
-### Ejemplos válidos
+### Valid examples
 
 ```text
 Ce O Ni
@@ -100,81 +100,81 @@ Ce O O1Ni C H
 32 64 6 2 2 1
 ```
 
-Mientras `Ce` siga siendo la **primera especie**, el script puede actuar sobre ese primer bloque.
+As long as `Ce` remains the **first species**, the script can act on that first block.
 
-### Ejemplo no válido con esta versión
+### Example not supported by this version
 
 ```text
 O Ce Ni
 64 32 6
 ```
 
-En ese caso el script fallará, porque espera que el bloque inicial corresponda a `Ce`.
+In that case, the script will fail, because it expects the initial block to correspond to `Ce`.
 
 ---
 
-## Qué pasa si detecta átomos con `|f| > umbral` fuera del bloque de Ce
+## What happens if atoms with `|f| > threshold` are found outside the Ce block
 
-El script puede encontrar índices con magnetización alta que estén **fuera** del bloque inicial de Ce. En ese caso:
+The script may detect indices with high magnetization that lie **outside** the initial Ce block. In that case, it:
 
-- los muestra por pantalla como aviso,
-- pero **no los marca como `La`**,
-- porque solo transforma los índices que pertenecen al bloque de Ce.
+- reports them on screen as a warning,
+- but **does not label them as `La`**, 
+- because it only transforms indices that belong to the Ce block.
 
-Esto evita etiquetar otras especies incorrectamente.
+This avoids incorrectly relabeling other species.
 
 ---
 
-## Archivos de entrada esperados
+## Expected input files
 
-Por defecto, en cada carpeta el script busca:
+By default, in each folder the script looks for:
 
 - `CONTCAR`
 - `OUTCAR`
 
-Solo procesa carpetas donde **ambos archivos** existen.
+It only processes folders where **both files** exist.
 
 ---
 
-## Archivo de salida
+## Output file
 
-Por defecto, el script **no sobrescribe** el `CONTCAR`. En su lugar crea:
+By default, the script **does not overwrite** the original `CONTCAR`. Instead, it creates:
 
 ```text
 CONTCAR_Ce3
 ```
 
-Si se desea, puede sobrescribir el archivo original usando la opción `--in-place`.
+If desired, the original file can be overwritten with the `--in-place` option.
 
 ---
 
-## Uso básico
+## Basic usage
 
-### Buscar desde el directorio actual
+### Search from the current directory
 
 ```bash
 python contcar_mark_ce3_recursive.py .
 ```
 
-Esto recorre el directorio actual y todos sus subdirectorios, y procesa cada carpeta que contenga `CONTCAR` y `OUTCAR`.
+This scans the current directory and all subdirectories, and processes every folder containing both `CONTCAR` and `OUTCAR`.
 
 ---
 
-## Opciones disponibles
+## Available options
 
 ### `root`
 
-Directorio raíz desde donde empezar la búsqueda recursiva.
+Root directory from which the recursive search starts.
 
 ```bash
-python contcar_mark_ce3_recursive.py /ruta/al/proyecto
+python contcar_mark_ce3_recursive.py /path/to/project
 ```
 
 ---
 
 ### `--contcar-name`
 
-Permite cambiar el nombre del archivo `CONTCAR` buscado.
+Allows changing the name of the `CONTCAR` file to search for.
 
 ```bash
 python contcar_mark_ce3_recursive.py . --contcar-name CONTCAR.relax
@@ -184,7 +184,7 @@ python contcar_mark_ce3_recursive.py . --contcar-name CONTCAR.relax
 
 ### `--outcar-name`
 
-Permite cambiar el nombre del archivo `OUTCAR` buscado.
+Allows changing the name of the `OUTCAR` file to search for.
 
 ```bash
 python contcar_mark_ce3_recursive.py . --outcar-name OUTCAR.relax
@@ -194,13 +194,13 @@ python contcar_mark_ce3_recursive.py . --outcar-name OUTCAR.relax
 
 ### `-o`, `--output-name`
 
-Permite definir el nombre del archivo de salida en cada carpeta.
+Allows defining the output filename in each folder.
 
 ```bash
 python contcar_mark_ce3_recursive.py . -o CONTCAR_marked
 ```
 
-Por defecto usa:
+By default it uses:
 
 ```text
 CONTCAR_Ce3
@@ -210,33 +210,33 @@ CONTCAR_Ce3
 
 ### `--in-place`
 
-Sobrescribe el `CONTCAR` original en lugar de crear un archivo nuevo.
+Overwrites the original `CONTCAR` instead of creating a new file.
 
 ```bash
 python contcar_mark_ce3_recursive.py . --in-place
 ```
 
-Usa esta opción con cuidado.
+Use this option with care.
 
 ---
 
 ### `-t`, `--threshold`
 
-Define el umbral aplicado sobre `|f|` en la última `magnetization (x)`.
+Sets the threshold applied to `|f|` in the last `magnetization (x)` block.
 
-Valor por defecto:
+Default value:
 
 ```text
 0.8
 ```
 
-Ejemplo:
+Example:
 
 ```bash
 python contcar_mark_ce3_recursive.py . --threshold 0.85
 ```
 
-El criterio aplicado es:
+The applied criterion is:
 
 ```text
 |f| > threshold
@@ -246,19 +246,19 @@ El criterio aplicado es:
 
 ### `--dry-run`
 
-Muestra qué haría el script, pero **no escribe archivos**.
+Shows what the script would do, but **does not write any files**.
 
 ```bash
 python contcar_mark_ce3_recursive.py . --dry-run
 ```
 
-Es la mejor opción para verificar el resultado antes de modificar nada.
+This is the best option to verify the result before modifying anything.
 
 ---
 
 ### `-q`, `--quiet`
 
-Reduce la información mostrada por pantalla.
+Reduces the amount of information printed to screen.
 
 ```bash
 python contcar_mark_ce3_recursive.py . --quiet
@@ -266,33 +266,33 @@ python contcar_mark_ce3_recursive.py . --quiet
 
 ---
 
-## Ejemplos de uso
+## Usage examples
 
-### 1. Ver qué carpetas serían procesadas, sin escribir nada
+### 1. Check which folders would be processed, without writing anything
 
 ```bash
 python contcar_mark_ce3_recursive.py . --dry-run
 ```
 
-### 2. Procesar todo recursivamente y guardar como `CONTCAR_Ce3`
+### 2. Process everything recursively and save as `CONTCAR_Ce3`
 
 ```bash
 python contcar_mark_ce3_recursive.py .
 ```
 
-### 3. Sobrescribir todos los `CONTCAR`
+### 3. Overwrite all `CONTCAR` files
 
 ```bash
 python contcar_mark_ce3_recursive.py . --in-place
 ```
 
-### 4. Usar nombres de archivos diferentes
+### 4. Use different filenames
 
 ```bash
 python contcar_mark_ce3_recursive.py . --contcar-name POSCAR --outcar-name OUTCAR.relax
 ```
 
-### 5. Cambiar el umbral de identificación de `Ce3+`
+### 5. Change the `Ce3+` identification threshold
 
 ```bash
 python contcar_mark_ce3_recursive.py . -t 1.0
@@ -300,72 +300,71 @@ python contcar_mark_ce3_recursive.py . -t 1.0
 
 ---
 
-## Salida por pantalla
+## Screen output
 
-En modo normal, para cada carpeta el script muestra algo como:
+In normal mode, for each folder the script prints something like:
 
 ```text
-[DIR] /ruta/a/la/carpeta
-  Ce3+ detectados (|f| > 0.8): [3, 10, 16]
-  Ce3+ dentro del bloque Ce      : [3, 10, 16]
-  Línea 6 nueva: Ce  La  Ce  La  Ce  La  Ce  O  Ni
-  Línea 7 nueva: 2  1  6  1  5  1  16  64  6
-  [OK] /ruta/a/la/carpeta/CONTCAR -> /ruta/a/la/carpeta/CONTCAR_Ce3
+[DIR] /path/to/folder
+  Ce3+ detected (|f| > 0.8): [3, 10, 16]
+  Ce3+ inside the Ce block : [3, 10, 16]
+  New line 6: Ce  La  Ce  La  Ce  La  Ce  O  Ni
+  New line 7: 2  1  6  1  5  1  16  64  6
+  [OK] /path/to/folder/CONTCAR -> /path/to/folder/CONTCAR_Ce3
 ```
 
-Si encuentra índices fuera del bloque de Ce, añade un aviso como:
+If it finds indices outside the Ce block, it adds a warning such as:
 
 ```text
-Aviso: hay índices > nCe que no se marcan como La: [...]
+Warning: there are indices > nCe that are not labeled as La: [...]
 ```
 
-Al final, imprime un resumen global:
+At the end, it prints a global summary:
 
 ```text
-Resumen: X carpeta(s) procesadas correctamente, Y con error.
+Summary: X folder(s) processed successfully, Y with errors.
 ```
 
 ---
 
-## Limitaciones de esta versión
+## Limitations of this version
 
-1. **Exige que `Ce` sea la primera especie** del `CONTCAR`.
-2. **No verifica químicamente** si un átomo es realmente `Ce3+`; usa únicamente el criterio de magnetización `|f| > umbral`.
-3. `La` se usa solo como **etiqueta de identificación visual**.
-4. El archivo generado **no debe usarse directamente para correr VASP** a menos que el resto de los archivos de entrada (`POTCAR`, etc.) sean consistentes con ese cambio de especies.
+1. It **requires `Ce` to be the first species** in the `CONTCAR`.
+2. It does **not chemically verify** whether an atom is truly `Ce3+`; it only applies the magnetization criterion `|f| > threshold`.
+3. `La` is used only as a **visual identification label**.
+4. The generated file **should not be used directly to run VASP** unless the rest of the input files (`POTCAR`, etc.) are made consistent with that species change.
 
 ---
 
-## Recomendación de uso
+## Recommended workflow
 
-Primero probar siempre con:
+Always test first with:
 
 ```bash
 python contcar_mark_ce3_recursive.py . --dry-run
 ```
 
-y revisar que:
+Then check that:
 
-- los índices detectados son los esperados,
-- la nueva línea de especies tiene sentido,
-- la nueva línea de conteos coincide con la partición deseada del bloque de Ce.
+- the detected indices are the expected ones,
+- the new species line makes sense,
+- the new atom-count line matches the intended partition of the Ce block.
 
-Después ejecutar en modo normal.
+After that, run it in normal mode.
 
 ---
 
-## Requisitos
+## Requirements
 
 - Python 3
-- No requiere librerías externas
+- No external libraries required
 
 ---
 
-## Nombre del script
+## Script name
 
-Archivo principal:
+Main file:
 
 ```text
 contcar_mark_ce3_recursive.py
 ```
-
